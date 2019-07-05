@@ -4,7 +4,6 @@
 A music recommendation service based on artificial intelligence.
 
 
-This project was implemented based on diversified-group-recommendation algorithm proposed by NT Toan, PT Cong, NT Tam, NQV Hung, "Diversifying Group Recommendation", IEEE Access, 2018 and implemented by [Lucas Cabral - @LucasCCabral](https://github.com/LucasCCabral), [Pedro Ximenes - @prximenes](https://github.com/prximenes)
-[Caio Rocha - @crp3](https://github.com/crp3) and [Pedro Lins - @plal](https://github.com/plal)
+This project was implemented based on diversified-group-recommendation algorithm proposed by NT Toan, PT Cong, NT Tam, NQV Hung, "Diversifying Group Recommendation", IEEE Access, 2018 and implemented by [Caio Rocha - @crp3](https://github.com/crp3),[Lucas Cabral - @LucasCCabral](https://github.com/LucasCCabral) [Pedro Lins - @plal](https://github.com/plal) and [Pedro Ximenes - @prximenes](https://github.com/prximenes)
 
 
