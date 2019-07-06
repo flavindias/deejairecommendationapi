@@ -1,12 +1,10 @@
 import os
 import json
 import urllib.request
-import ssl
 import numpy as np
 
-from flask_restful import Resource, Api
-from flask_restful import reqparse
-from flask import Flask, flash, request, redirect, url_for, jsonify, Response
+from flask_restful import Resource, reqparse
+from flask import request
 
 
 class GenerateGrade(Resource):
@@ -14,13 +12,10 @@ class GenerateGrade(Resource):
         n = len(musics)  # numero de musicas
         m = len(musics[0])  # numero de caracteristicas
         center = np.zeros(m)  # vetor centro das caracteristicas
-
         for music in musics:
             for i in range(m):
                 center[i] = music[i] + center[i]
-
         center = center/n
-
         return center
 
     def sigmoid(self, x):
@@ -28,11 +23,15 @@ class GenerateGrade(Resource):
 
     def post(self):
         try:
+            # recebe como parametro de entrada o código da sala (code)
             parser = reqparse.RequestParser()
             args = parser.parse_args()
             data = request.data
             dataDict = json.loads(data)
             roomCode = dataDict['code']
+
+            # busca na API as informações (antigo fetch do banco) recebendo
+            # a resposta em json
             url = os.environ.get(
                 "MAINAPI", "http://localhost:3001/v1")+"/rooms/"+roomCode+"/ia"
             body = {}
@@ -47,16 +46,62 @@ class GenerateGrade(Resource):
             string = response.read().decode('utf-8')
             json_obj = json.loads(string)
 
-            # prints the string with 'source_name' key
+            # guarda features das musicas em um dicionario e salva lista de ids das musicas
             tracks = dict()
+            # guarda tracks de cada usuario em um dicionario
+            userTracks = dict()
             trackList = []
             for track in json_obj:
+                if track['user_id'] in userTracks:
+                    userTracks[track['user_id']] = np.append(
+                        userTracks[track['user_id']], track['track_id'])
+                else:
+                    userTracks[track['user_id']] = np.array(track['track_id'])
                 trackList.append(track['track_id'])
-                t = [track['danceability'], track['energy'], track['instrumentalness'], track['liveness'], track['speechiness'], track['valence'], track['acousticness'],
-                     track['mode'], sigmoid(track['duration_ms']), sigmoid(track['key']), sigmoid(track['time_signature']), sigmoid(track['tempo']), sigmoid(track['loudness'])]
+                t = [track['feature']['danceability'],
+                     track['feature']['energy'],
+                     track['feature']['instrumentalness'],
+                     track['feature']['liveness'],
+                     track['feature']['speechiness'],
+                     track['feature']['valence'],
+                     track['feature']['acousticness'],
+                     track['feature']['mode'],
+                     self.sigmoid(track['feature']['duration_ms']),
+                     self.sigmoid(track['feature']['key']),
+                     self.sigmoid(track['feature']['time_signature']),
+                     self.sigmoid(track['feature']['tempo']),
+                     self.sigmoid(track['feature']['loudness'])]
                 tracks[track['track_id']] = np.array(t)
 
-            print(tracks)
+            # calcula centroide e variancia do usuario, baseado em suas musicas, e cria uma lista com ids dos usuarios
+            userList = []
+            users = dict()
+            for i in userTracks:
+                userTracksFeatures = []
+                for track in userTracks[i]:
+                    userTracksFeatures.append(tracks[track])
+                users[i] = [self.centroid(userTracksFeatures),
+                            np.var(userTracksFeatures)]
+                userList.append(i)
+
+            # monta matriz com notas, cada linha representa um usuario e
+            # cada coluna representa uma musica, a nota eh definida para todas
+            # as musicas de todos os usuarios da sala a nota eh dada com base
+            # na variancia das musicas de um usuario sobre a distancia entre o
+            # centroide do usuario e as features da musica
+
+            i = 0
+            matrix = [[0 for x in range(3)]
+                      for y in range(len(users) * len(tracks))]
+            for user in users:
+                for track in tracks:
+                    matrix[i][0] = user
+                    matrix[i][1] = track
+                    # nota_maxima*var/dist
+                    matrix[i][2] = 5*users[user][1] / \
+                        np.linalg.norm(users[user][0]-tracks[track])
+                    i = i+1
+            print(matrix)
 
         except Exception as e:
             return {'error': str(e)}
