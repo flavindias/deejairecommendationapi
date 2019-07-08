@@ -4,7 +4,8 @@ import urllib.request
 import numpy as np
 
 from flask_restful import Resource, reqparse
-from flask import request
+from flask import request, jsonify
+from Resources.calculateList import CalculateList
 
 
 class GenerateGrade(Resource):
@@ -35,7 +36,6 @@ class GenerateGrade(Resource):
             url = os.environ.get(
                 "MAINAPI", "http://localhost:3001/v1")+"/rooms/"+roomCode+"/ia"
             body = {}
-
             req = urllib.request.Request(url)
             req.add_header('Content-Type', 'application/json; charset=utf-8')
 
@@ -101,7 +101,11 @@ class GenerateGrade(Resource):
                     matrix[i][2] = 5*users[user][1] / \
                         np.linalg.norm(users[user][0]-tracks[track])
                     i = i+1
-            print(matrix)
+            # print(matrix)
+            M, S = CalculateList().refined_pre_processing(matrix)
+            songs = CalculateList().diversify_group_recommendation_the_algorithm(matrix, M, S, 5)
+            print(songs)
+            return jsonify(songs)
 
         except Exception as e:
             return {'error': str(e)}
