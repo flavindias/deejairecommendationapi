@@ -9,5 +9,19 @@ This project was implemented based on diversified-group-recommendation algorithm
 
 #Running
 With docker
+
+
+
+## Steps for run with docker
+
+To start the recommendation service, run the following scripts
+
+```bash
 docker build -t deejai_recommendation:latest .
+```
+
+```bash
 docker run -d -p 5000:5000 deejai_recommendation:latest
+```
+Open [http://localhost:5000](http://localhost:5000) and take a look around.
+
