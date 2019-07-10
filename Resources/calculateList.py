@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from Resources.utils import Utils
 from Resources.constants import SIMILARITY_SWITCH, GROUP_UTILITY_SWITCH, DISAGREEMENT_SWITCH
 import csv

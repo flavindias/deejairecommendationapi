@@ -24,14 +24,14 @@ class GenerateGrade(Resource):
 
     def post(self):
         try:
-            # recebe como parametro de entrada o código da sala (code)
+            # recebe como parametro de entrada o codigo da sala (code)
             parser = reqparse.RequestParser()
             args = parser.parse_args()
             data = request.data
             dataDict = json.loads(data)
             roomCode = dataDict['code']
 
-            # busca na API as informações (antigo fetch do banco) recebendo
+            # busca na API as informacoes (antigo fetch do banco) recebendo
             # a resposta em json
             url = os.environ.get(
                 "MAINAPI", "http://localhost:3001/v1")+"/rooms/"+roomCode+"/ia"
@@ -39,10 +39,10 @@ class GenerateGrade(Resource):
             req = urllib.request.Request(url)
             req.add_header('Content-Type', 'application/json; charset=utf-8')
 
-            jsondata = json.dumps(body)
-            jsondataasbytes = jsondata.encode('utf-8')   # needs to be bytes
-            req.add_header('Content-Length', len(jsondataasbytes))
-            response = urllib.request.urlopen(req, jsondataasbytes)
+            # jsondata = json.dumps(body)
+            # jsondataasbytes = jsondata.encode('utf-8')   # needs to be bytes
+            # req.add_header('Content-Length', len(jsondataasbytes))
+            response = urllib.request.urlopen(req)
             string = response.read().decode('utf-8')
             json_obj = json.loads(string)
 
@@ -104,7 +104,7 @@ class GenerateGrade(Resource):
             # print(matrix)
             M, S = CalculateList().refined_pre_processing(matrix)
             songs = CalculateList().diversify_group_recommendation_the_algorithm(matrix, M, S, 5)
-            print(songs)
+            # print(songs)
             return jsonify(songs)
 
         except Exception as e:
